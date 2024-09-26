@@ -22,6 +22,7 @@ function Board({ xIsNext, squares, onPlay }) {
   }
 
   function handleClick(i) {
+    // console.log("handleClick param:" + i);
     if (squares[i] || winnerSquares.length > 0) {
       return;
     }
@@ -31,7 +32,7 @@ function Board({ xIsNext, squares, onPlay }) {
     } else {
       nextSquares[i] = "O";
     }
-    onPlay(nextSquares);
+    onPlay(nextSquares, i);
   }
 
   const rows = 3;
@@ -89,14 +90,24 @@ export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
   const [asc, setAsc] = useState(true);
+  const [moveLocationMap, setMoveLocationMap] = useState(new Map([[0, 0]]));
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
   // const currentSquares = history[history.length - 1];
-  function handlePlay(nextSquares) {
+  function handlePlay(nextSquares, squareKey) {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
+    // console.log("currentMove:" + currentMove + ",squareKey:" + squareKey);
+    moveLocationMap.set(currentMove, squareKey);
+    setMoveLocationMap(moveLocationMap);
   }
+
+  // function record(nextSquares) {
+  //   const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+  //   setHistory(nextHistory);
+  //   setCurrentMove(nextHistory.length - 1);
+  // }
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
@@ -107,6 +118,9 @@ export default function Game() {
   };
 
   const moves = history.map((squares, move) => {
+    let squareKey = moveLocationMap.get(move);
+    // console.log("squareKey->" + squareKey);
+    let location = "(" + parseInt(squareKey / 3) + "," + (squareKey % 3) + ")";
     let description;
     if (move > 0) {
       description = "go to move #" + move;
@@ -115,11 +129,11 @@ export default function Game() {
     }
     if (currentMove === move) {
       let msg = "You are at move #" + move;
-      return <li key={move}>{msg}</li>;
+      return <li key={move}>{msg + location}</li>;
     } else {
       return (
         <li key={move}>
-          <button onClick={() => jumpTo(move)}>{description}</button>
+          <button onClick={() => jumpTo(move)}>{description + location}</button>
         </li>
       );
     }
